@@ -1,0 +1,98 @@
+We can use generic type parameter.
+
+We can also constrain the type parameter:
+
+    class Node<T: Number>(private val item: T) {
+        fun value(): T {
+            return item
+        }
+    }
+
+
+Generics at runtime:
+    -Java erases all generic type information at run time. So, any reflection api won't understand the generic type at run time.
+    -Kotlin can reify(make real) some generic information.
+    -Generally, types are erased i.e cannot check generic type at run time
+    For example,
+    1. using 'is' operator
+        fun printType(items: List<Any>) {
+            if (items is List<String>) {
+            println("We have Strings")
+            }
+        }
+
+        Error at compile time: Kotlin: Cannot check for instance of erased type: List<String>
+
+    2. Unchecked cast warning
+        fun printType(items: List<Any>) {
+            val names = items as List<String>
+        }
+
+        Warning at compile time: Kotlin: Unchecked cast: List<Any> to List<String>
+
+     -Reifying Types
+        By default, generic functions have types erased.
+        However, we can mark type as reified. This will cause the compiler to be able to use the type information.
+        But reifying works only on inline functions.
+
+        For example, 1. generic type
+        fun<T> foo(value: Any) = value is T
+
+        Error at compile time: Kotlin: Cannot check for instance of erased type: T
+
+        2. Inline Reified types
+        inline fun <reified T> foo(value: Any) = value is T
+
+        Here, the type can be checked at run time.
+
+      -Non-inline Type Parameters
+        Sometimes, need to make a parameter non-inline when the function is inline
+        E.g.
+
+            fun <T: Meeting> buildMeeting(meetingClass: Class<T>, action: (T) -> Unit): T {
+                val meeting: T = meetingClass.newInstance()
+                action(meeting)
+                return meeting
+            }
+
+            inline fun <reified T: Meeting> buildMeeting(noinline action: (T) -> Unit): T{
+                return buildMeeting(T::class.java, action)
+            }
+
+Generic Variance in Kotlin:
+    -Types and Sub types:
+        -Types have a relationship.
+            e.g. Student is a sub type of Person.
+        -Generic types have a more complex relationship
+            Q. Is List<Student> is sub-type of List<Person> ? It depends
+        -Variance determines whether a sub type can be used in place of a type.
+        -Java Variance:  'Super' and 'Extends' keywords
+            - use site variance
+
+        -Kotlin Variance: 'in' and 'out' keywords
+            - Declaration site variance (unlike java)
+            Kotlin also supports 'use site' variance
+
+       Variance types:
+            - Invariant: we simply cannot pass around 'subtype' with something expection 'type'
+            - Covariant: Derived type can be used where base type is more specific.
+                            only if In kotlin, mark the type parameter as 'out'
+            - Contravariance: Base type can be used where derived type is more specific.
+                                only if kotlin mark a parameter as 'in'
+
+       Call Site Variance:
+            -Sometimes need more flexibility
+             Mutable list is now 'projected'
+             Can only call methods that return data
+
+             fun <T> copyData(source: MutableList<out T>, destination: MutableList<T>) {
+                for (item in source) {
+                    destination.add(item)
+                }
+             }
+
+
+
+
+
+
